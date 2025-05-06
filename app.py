@@ -1,8 +1,12 @@
 import streamlit as st
 from transformers import pipeline
+from huggingface_hub import login
 import PyPDF2
 import docx
 import io
+
+# Đăng nhập vào Hugging Face bằng token trong secrets
+login(st.secrets["HUGGINGFACE_TOKEN"])  # Đảm bảo đã thêm token vào Streamlit Secrets
 
 # Tạo pipeline tóm tắt với mô hình nhẹ
 summarizer = pipeline("summarization", model="t5-small", tokenizer="t5-small")
@@ -26,23 +30,22 @@ def summarize_text(text):
     return " ".join(summaries)
 
 def generate_quiz(summary):
-    sentences = summary.split(".")  # Tách câu bằng cách sử dụng dấu chấm
-    sentences = [s.strip() for s in sentences if s.strip()]  # Loại bỏ câu rỗng
+    sentences = summary.split(".")
+    sentences = [s.strip() for s in sentences if s.strip()]
     questions = []
-    max_questions = min(len(sentences), 10)  # Tạo tối đa 10 câu hỏi
+    max_questions = min(len(sentences), 10)
 
     for i, sentence in enumerate(sentences[:max_questions]):
-        if len(sentence.split()) > 5:  # Kiểm tra câu có đủ độ dài
+        if len(sentence.split()) > 5:
             q = f"Câu {i+1}: {sentence.strip()} đúng hay sai?"
             questions.append({"question": q, "options": ["Đúng", "Sai"], "answer": "Đúng"})
 
-    # Nếu ít câu hỏi, tạo câu hỏi theo dạng khác (VD: "Câu nào đúng?" cho những câu ngắn)
     if len(questions) < 5:
         for i, sentence in enumerate(sentences[:max_questions]):
             if len(sentence.split()) <= 5:
                 q = f"Câu {i+1}: {sentence.strip()} là đúng hay sai?"
                 questions.append({"question": q, "options": ["Đúng", "Sai"], "answer": "Đúng"})
-    
+
     return questions
 
 def main():
@@ -66,5 +69,5 @@ def main():
                 else:
                     st.error(f"❌ Sai. Đáp án đúng là: {q['answer']}")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
