@@ -1,5 +1,5 @@
 streamlit
 transformers
-torch
+huggingface_hub
 PyPDF2
 python-docx
